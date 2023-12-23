@@ -1,4 +1,6 @@
+import 'package:api_task_glogin/main.dart';
 import 'package:api_task_glogin/model/user_model.dart';
+import 'package:api_task_glogin/screen/home_screen.dart';
 import 'package:api_task_glogin/services/auth_services.dart';
 import 'package:flutter/material.dart';
 
@@ -37,9 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisSize: MainAxisSize.max,
             children: [
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(hintText: "Enter Email Address"),
               ),
               TextField(
+                controller: passwordController,
                 decoration: InputDecoration(hintText: "Enter Password"),
               ),
               ElevatedButton(
@@ -65,28 +69,40 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void logInUser() {
-    if (loginFormKey.currentState!.validate()) {
-      userModelClass.where((element) {
-        element.email!.toLowerCase() == emailController.text.toLowerCase();
-        print("You can Login");
-        return true;
-      });
+    for (int i = 0; i < userModelClass.length; i++) {
+      if (userModelClass[i].email!.trim().toLowerCase() ==
+          emailController.text.trim().toLowerCase()) {
+        print("ypu can login");
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+            (Route<dynamic> route) => false);
+      }
     }
   }
 
   void logInWithGoogleAccount() {
+    var tokenId;
     AuthService().googleSignIn().then((value) => {
-          if (value.user!.uid.isNotEmpty)
+          if (value.user != null)
             {
+              tokenId = (value.user!.getIdToken() ?? "") as String?,
+
+              print("accesss token ==> ${tokenId}"),
+              //  prefs.setString("token", value.user!.uid.toString()),
+              print("===>"),
+              print(value.user!.uid),
+              // print(value.uid.toString()),
               print("google Login successFully"),
             }
         });
   }
 
-  void getLoginUserAPi() async {
+  void getLoginUserAPi() {
     ApiService().getUser().then((value) {
-      userModelClass.addAll(value);
-      print(userModelClass);
+      setState(() {
+        userModelClass.addAll(value);
+      });
+      //  print(userModelClass.toList());
     });
   }
 }
